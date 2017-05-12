@@ -84,6 +84,12 @@
 
 #endif // HAVE_MALLOC_TRIM
 
+/* dcl: need this helper function available to fdcache.cpp:UpdateMd5Sum()
+   This should be better integrated into the s3fs code and processing flow
+   as it is a hack. 
+*/
+int set_xattrs_to_header(headers_t& meta, const char* name, const char* value, size_t size, int flags);
+
 #endif // S3FS_S3_H_
 
 /*

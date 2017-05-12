@@ -43,6 +43,7 @@
 #include "common.h"
 #include "fdcache.h"
 #include "s3fs.h"
+#include "s3fs_auth.h"
 #include "s3fs_util.h"
 #include "string_util.h"
 #include "curl.h"
@@ -1051,6 +1052,26 @@ bool FdEntity::UpdateMtime(void)
     return false;
   }
   orgmeta["x-amz-meta-mtime"] = str(st.st_mtime);
+  return true;
+}
+
+/* dcl: As mentioned in other comments this is a hack.  At this point the
+** object's metadata is already set; by calling this function we are updating
+** the "original" metadata defined for the object.  This may break.  On the
+** other hand--UpdateMtime() does a similar thing, just not on extended
+** attributes.
+**
+** This should only be called if use_xattr and use_xattr_md5 are both enabled.
+*/
+bool FdEntity::UpdateMd5Sum(void)
+{
+  // calculate md5 sum of file
+  string md5sum = s3fs_md5sum(fd, 0, -1);
+
+  // this is the way it's done from s3fs_setxattr(), but a lot of unnecessary (?)
+  // overhead and using s3fs util functions outside of their intended place
+  set_xattrs_to_header(orgmeta, "md5sum", md5sum.c_str(), md5sum.length(), 0);
+
   return true;
 }
 

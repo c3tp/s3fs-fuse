@@ -123,6 +123,7 @@ static bool is_s3fs_gid           = false;// default does not set.
 static bool is_s3fs_umask         = false;// default does not set.
 static bool is_remove_cache       = false;
 static bool is_use_xattr          = false;
+static bool is_use_xattr_md5      = false;
 static bool create_bucket         = false;
 static int64_t singlepart_copy_limit = FIVE_GB;
 static bool is_specified_endpoint = false;
@@ -2200,6 +2201,16 @@ static int s3fs_flush(const char* path, struct fuse_file_info* fi)
   FdEntity* ent;
   if(NULL != (ent = FdManager::get()->ExistOpen(path, static_cast<int>(fi->fh)))){
     ent->UpdateMtime();
+
+    /* dcl: This is hacky.  A better way should be investigated before used 
+    ** for production use in order to ensure it doesn't break s3fs or the
+    ** structure and maintainability of the code base.
+    */
+    if (is_use_xattr && is_use_xattr_md5){
+      // update md5sum
+      ent->UpdateMd5Sum();
+    }
+
     result = ent->Flush(false);
     FdManager::get()->Close(ent);
   }
@@ -2966,7 +2977,8 @@ static std::string build_xattrs(const xattrs_t& xattrs)
   return strxattrs;
 }
 
-static int set_xattrs_to_header(headers_t& meta, const char* name, const char* value, size_t size, int flags)
+// dcl: removed "static" so it's available to fdcache.cpp
+int set_xattrs_to_header(headers_t& meta, const char* name, const char* value, size_t size, int flags)
 {
   string   strxattrs;
   xattrs_t xattrs;
@@ -2977,6 +2989,10 @@ static int set_xattrs_to_header(headers_t& meta, const char* name, const char* v
       // there is no xattr header but flags is replace, so failure.
       return -ENOATTR;
     }
+
+    // dcl: there are no xattrs defined; parse_xattrs will fail on empty 
+    // string 
+    strxattrs = "{}";
   }else{
     if(XATTR_CREATE == (flags & XATTR_CREATE)){
       // found xattr header but flags is only creating, so failure.
@@ -4733,6 +4749,21 @@ static int my_fuse_opt_proc(void* data, const char* arg, int key, struct fuse_ar
         is_use_xattr = false;
       }else{
         S3FS_PRN_EXIT("option use_xattr has unknown parameter(%s).", strflag);
+        return -1;
+      }
+      return 0;
+    }
+    if(0 == strcmp(arg, "use_xattr_md5")){
+      is_use_xattr_md5 = true;
+      return 0;
+    }else if(0 == STR2NCMP(arg, "use_xattr_md5=")){
+      const char* strflag = strchr(arg, '=') + sizeof(char);
+      if(0 == strcmp(strflag, "1")){
+        is_use_xattr_md5 = true;
+      }else if(0 == strcmp(strflag, "0")){
+        is_use_xattr_md5 = false;
+      }else{
+        S3FS_PRN_EXIT("option use_xattr_md5 has unknown parameter(%s).", strflag);
         return -1;
       }
       return 0;
