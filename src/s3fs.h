@@ -23,6 +23,9 @@
 #define FUSE_USE_VERSION      26
 #define FIVE_GB               5368709120LL
 
+// for "use_xattr_md5sum" option (must not contain spaces)
+#define XATTR_MD5SUM          "md5-checksum"
+
 #include <fuse.h>
 
 #define S3FS_FUSE_EXIT() { \

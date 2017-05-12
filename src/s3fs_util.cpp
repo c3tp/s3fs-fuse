@@ -1165,7 +1165,7 @@ void show_help (void)
     "      copy command with preserve=mode.\n"
     "\n"
     "   use_xattr_md5 (default is not storing MD5 checksum in extended attribute)\n"
-    "      Enable to store an MD5 checksum in an extended attribute \"md5sum\".\n"
+    "      Enable to store an MD5 checksum in an extended attribute \""XATTR_MD5SUM"\".\n"
     "      Requires enabling extended attributes with \"use_xattr\"."
     "\n"
     "   noxmlns (disable registering xml name space)\n"

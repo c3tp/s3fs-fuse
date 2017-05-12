@@ -1070,7 +1070,7 @@ bool FdEntity::UpdateMd5Sum(void)
 
   // this is the way it's done from s3fs_setxattr(), but a lot of unnecessary (?)
   // overhead and using s3fs util functions outside of their intended place
-  set_xattrs_to_header(orgmeta, "md5sum", md5sum.c_str(), md5sum.length(), 0);
+  set_xattrs_to_header(orgmeta, XATTR_MD5SUM, md5sum.c_str(), md5sum.length(), 0);
 
   return true;
 }
