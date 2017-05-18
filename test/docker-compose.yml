@@ -1,0 +1,20 @@
+version: "2.1"
+services:
+    minio:
+        image: minio/minio:latest
+        # minio_env can contain entries for:
+        # MINIO_ACCESS_KEY
+        # MINIO_SECRET_KEY
+        env_file: ./minio_env
+        command: [server, /export]
+        ports:
+            - "9000:9000"
+        volumes:
+            - minio-s3-storage:/export
+
+volumes:
+    minio-s3-storage:
+        driver: local
+        driver_opts:
+            type: tmpfs
+            device: tmpfs
