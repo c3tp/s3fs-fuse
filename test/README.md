@@ -44,6 +44,7 @@ make
 cd test
 docker-compose up -d minio
 ```
+* Use the web interface at 'http://127.0.0.1:9000' or an AWS S3 library to create a bucket (`c3tp-test`)
 
 #### Mount the S3 filesystem
 ```
